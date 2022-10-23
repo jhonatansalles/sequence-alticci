@@ -1,0 +1,16 @@
+FROM node:latest as angular
+ENV APP_HOME=/opt/service
+
+# Copy and Build Frontned
+WORKDIR $APP_HOME
+COPY frontend ./frontend
+
+WORKDIR $APP_HOME/frontend
+RUN npm install
+RUN npm run build
+
+#Run Service
+FROM nginx:alpine
+COPY --from=angular /opt/service/frontend/dist/app-sequence-alticci /usr/share/nginx/html
+
+EXPOSE 80

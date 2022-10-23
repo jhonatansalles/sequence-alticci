@@ -1,0 +1,50 @@
+version: '3.8'
+
+x-common-variables: &common-variables
+  env.redis.host: redis
+
+services:
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - './docker-data/redis/data:/data'
+    networks:
+      alticci-network:
+
+  service-backend:
+    container_name: service-backend
+    build:
+      context: .
+      dockerfile: DockerfileBackend
+    ports:
+      - '8080:8080'
+    depends_on:
+      redis:
+        condition: service_started
+    environment:
+      <<: *common-variables
+    restart: on-failure:3
+    networks:
+      alticci-network:
+
+  app-frontend:
+    container_name: app-frontend
+    build:
+      context: .
+      dockerfile: DockerfileFrontend
+    ports:
+      - '4200:80'
+    environment:
+      <<: *common-variables
+    restart: on-failure:3
+    networks:
+      alticci-network:
+
+volumes:
+  docker-data:
+networks:
+  alticci-network:
+    driver: bridge   

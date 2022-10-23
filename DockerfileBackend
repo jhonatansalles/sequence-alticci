@@ -1,0 +1,16 @@
+FROM maven:3.6.0-jdk-11-slim AS build
+ENV APP_HOME=/opt/service
+
+# Copy and Build Microservice
+WORKDIR $APP_HOME
+COPY backend ./backend
+
+WORKDIR $APP_HOME/backend
+RUN mvn clean package -Dmaven.test.skip=true spring-boot:repackage
+
+# Run Microservice
+FROM openjdk:11-jdk-oraclelinux7
+
+COPY --from=build /opt/service/backend/target/com.winprovit.alticci-0.0.1-SNAPSHOT.jar /opt/backend.jar
+
+ENTRYPOINT ["java", "-Dspring.profiles.active=dev", "-jar", "/opt/backend.jar"]
